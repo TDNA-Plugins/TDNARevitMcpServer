@@ -176,17 +176,41 @@ internal class App : IExternalApplication
     }
 
     /// <summary>
-    /// Gets an existing ribbon panel by name, or creates a new one on the Add-Ins tab.
+    /// Name of the shared TheatreDNA ribbon tab.
+    /// <para>
+    /// This must stay identical to <c>RibbonRegistrar.TabName</c> in the other TheatreDNA
+    /// toolkits, so every TheatreDNA add-in lands on one tab rather than each creating
+    /// its own. Revit matches tabs by this string exactly, including case.
+    /// </para>
     /// </summary>
+    private const string TabName = "TheatreDNA";
+
+    /// <summary>
+    /// Gets an existing panel on the TheatreDNA tab, or creates it.
+    /// </summary>
+    /// <remarks>
+    /// The previous implementation searched <see cref="UIControlledApplication.GetRibbonPanels()"/>,
+    /// which only enumerates the Add-Ins tab, and then created the panel on an "ArchSmarter"
+    /// tab inherited from upstream - so the lookup could never match what it created.
+    /// </remarks>
     private static RibbonPanel GetOrCreatePanel(UIControlledApplication app, string panelName)
     {
-        foreach (var panel in app.GetRibbonPanels())
+        // GetRibbonPanels(tabName) throws when the tab does not exist yet, which is the
+        // normal case whenever this is the first TheatreDNA add-in to load in a session.
+        try
         {
-            if (panel.Name == panelName)
-                return panel;
+            foreach (var panel in app.GetRibbonPanels(TabName))
+            {
+                if (panel.Name == panelName)
+                    return panel;
+            }
+        }
+        catch (Autodesk.Revit.Exceptions.ApplicationException)
+        {
+            // Tab absent. CreateRibbonPanel below creates the tab and the panel together.
         }
 
-        return app.CreateRibbonPanel("ArchSmarter", panelName);
+        return app.CreateRibbonPanel(TabName, panelName);
     }
 
     /// <summary>
