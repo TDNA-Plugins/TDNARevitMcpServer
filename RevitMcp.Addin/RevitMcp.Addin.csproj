@@ -7,8 +7,8 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<ImplicitUsings>true</ImplicitUsings>
 		<PublishAddinFiles>true</PublishAddinFiles>
-		<Configurations>Debug R20;Debug R21;Debug R22;Debug R23;Debug R24;Debug R25</Configurations>
-		<Configurations>$(Configurations);Release R20;Release R21;Release R22;Release R23;Release R24;Release R25</Configurations>
+		<Configurations>Debug R20;Debug R21;Debug R22;Debug R23;Debug R24;Debug R25;Debug R26;Debug R27</Configurations>
+		<Configurations>$(Configurations);Release R20;Release R21;Release R22;Release R23;Release R24;Release R25;Release R26;Release R27</Configurations>
 		<Nullable>disable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
@@ -42,17 +42,37 @@
     <PropertyGroup Condition="$(Configuration.Contains('R24'))">
 		<RevitVersion>2024</RevitVersion>
     <TargetFramework>net48</TargetFramework>
+    <RevitApiPackageVersion>2024.0.0</RevitApiPackageVersion>
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<DefineConstants>$(DefineConstants);REVIT2024</DefineConstants>
 	</PropertyGroup>
     <PropertyGroup Condition="$(Configuration.Contains('R25'))">
     <RevitVersion>2025</RevitVersion>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2025.0.0</RevitApiPackageVersion>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<DefineConstants>$(DefineConstants);REVIT2025</DefineConstants>
   </PropertyGroup>
-	
+    <!-- Revit 2026 runs on .NET 8, same as 2025 (verified from the local install's runtimeconfig). -->
+    <PropertyGroup Condition="$(Configuration.Contains('R26'))">
+    <RevitVersion>2026</RevitVersion>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2026.0.0</RevitApiPackageVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<DefineConstants>$(DefineConstants);REVIT2026</DefineConstants>
+  </PropertyGroup>
+    <!-- Revit 2027 moves to .NET 10. Building this configuration requires the .NET 10 SDK. -->
+    <PropertyGroup Condition="$(Configuration.Contains('R27'))">
+    <RevitVersion>2027</RevitVersion>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2027.2.0</RevitApiPackageVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<DefineConstants>$(DefineConstants);REVIT2027</DefineConstants>
+  </PropertyGroup>
+
 	<PropertyGroup Condition="$(Configuration.Contains('Debug'))">
 		<Optimize>False</Optimize>
 		<OutputPath>bin\Debug\$(RevitVersion)</OutputPath>
@@ -62,6 +82,15 @@
 		<Optimize>True</Optimize>
 		<OutputPath>bin\Release\$(RevitVersion)</OutputPath>
 		<DebugType>None</DebugType>
+	</PropertyGroup>
+
+	<!--
+	  Fallback for the legacy R20-R24 configurations, which predate the pinned-version
+	  scheme. They target net48 and are not exercised by this repo (Revit 2025+ only),
+	  but an empty package version would break evaluation outright.
+	-->
+	<PropertyGroup Condition="'$(RevitApiPackageVersion)' == ''">
+		<RevitApiPackageVersion>2025.0.0</RevitApiPackageVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -90,8 +119,20 @@
 	
 	<ItemGroup>
 	  <PackageReference Include="System.Drawing.Common" Version="8.0.3" IncludeAssets="build; compile" PrivateAssets="All" />
-	  <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2025.*" IncludeAssets="build; compile" PrivateAssets="All" />
+	  <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitApiPackageVersion)" IncludeAssets="build; compile" PrivateAssets="All" />
 	  <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+	</ItemGroup>
+
+	<!--
+	  net48 (Revit 2024 and earlier) needs System.Text.Json from NuGet and its own copy
+	  of the compiler-emitted attribute types for records and `required` members. These
+	  are all in-box from .NET 8 onward, so the condition keeps R25+ untouched.
+	-->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+	  <Compile Include="..\Shared\Net48Polyfills.cs" Link="Properties\Net48Polyfills.cs" />
+	  <PackageReference Include="System.Text.Json" Version="8.0.5" />
+	  <!-- Supplies the net48 reference assemblies so a build does not need Visual Studio installed. -->
+	  <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -99,17 +140,47 @@
 	</ItemGroup>
 	
 	<PropertyGroup>
-		<PostBuildEvent>echo *** Configuration: $(Configuration)
-echo *** Copying results to $(RevitVersion)
-echo *** $(MSBuildProjectDirectory)
-if not exist "$(AppData)\Autodesk\REVIT\Addins\$(RevitVersion)\RevitMcp.Addin" mkdir "$(AppData)\Autodesk\REVIT\Addins\$(RevitVersion)\RevitMcp.Addin"
-copy "$(MSBuildProjectDirectory)\*.addin" "$(AppData)\Autodesk\REVIT\Addins\$(RevitVersion)"
-copy "$(TargetDir)*.dll" "$(AppData)\Autodesk\REVIT\Addins\$(RevitVersion)\RevitMcp.Addin"
-    </PostBuildEvent>
 		<RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
 		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
 		<Copyright>2024</Copyright>
 	</PropertyGroup>
+
+	<!--
+	  Deploys the add-in into Revit's per-version Addins folder.
+
+	  This replaces a batch PostBuildEvent that shelled out to `copy`. On .NET 8 the
+	  add-in needs only 2 DLLs, because System.Text.Json and friends are in-box. The
+	  net48 (Revit 2024) leg has to ship 13, since those same libraries come from
+	  NuGet - which widened the window for a transient file lock (antivirus scanning
+	  a freshly written DLL) to fail the copy and therefore the entire build, even
+	  though every file had in fact been deployed correctly.
+
+	  SkipUnchangedFiles avoids touching dependency DLLs that did not change between
+	  builds, and Retries absorbs a lock that does occur.
+	-->
+	<!--
+	  Set -p:SkipRevitDeploy=true to compile without deploying: on CI, where there is
+	  no Revit Addins folder, and locally to verify a build while that Revit version
+	  is open (Revit holds a lock on the add-in DLLs it has loaded, so the copy would
+	  fail even though the compile is fine).
+	-->
+	<Target Name="DeployToRevitAddins" AfterTargets="Build" Condition="'$(SkipRevitDeploy)' != 'true'">
+		<PropertyGroup>
+			<RevitAddinsDir>$(AppData)\Autodesk\REVIT\Addins\$(RevitVersion)</RevitAddinsDir>
+		</PropertyGroup>
+		<ItemGroup>
+			<AddinManifest Include="$(MSBuildProjectDirectory)\*.addin" />
+			<AddinPayload Include="$(TargetDir)*.dll" />
+		</ItemGroup>
+		<Message Importance="high" Text="*** $(Configuration): deploying to $(RevitAddinsDir)" />
+		<MakeDir Directories="$(RevitAddinsDir)\RevitMcp.Addin" />
+		<Copy SourceFiles="@(AddinManifest)"
+		      DestinationFolder="$(RevitAddinsDir)"
+		      SkipUnchangedFiles="true" Retries="3" RetryDelayMilliseconds="300" />
+		<Copy SourceFiles="@(AddinPayload)"
+		      DestinationFolder="$(RevitAddinsDir)\RevitMcp.Addin"
+		      SkipUnchangedFiles="true" Retries="3" RetryDelayMilliseconds="300" />
+	</Target>
 	
 	<ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">

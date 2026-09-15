@@ -1,13 +1,89 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    Revit version matrix.
+
+    Configurations without an R-suffix ("Debug" / "Release") build against Revit 2025,
+    so RevitMcp.Server - which is Revit-version-agnostic - keeps working unchanged.
+
+    Target frameworks are dictated by the Revit host:
+      Revit 2025  -> .NET 8   (verified: Revit 2025\APIUIAPI.runtimeconfig.json reports net8.0)
+      Revit 2026  -> .NET 8   (verified: Revit 2026\APIUIAPI.runtimeconfig.json reports net8.0)
+      Revit 2027  -> .NET 10  (per the 2027.x API packages, which all ship lib/net10.0)
+
+    API package versions are PINNED, not wildcarded. The old "2025.*" style is unsafe:
+    Revit_All_Main_Versions_API_x64 2026.5.0 ships lib/net10.0, so a "2026.*" wildcard
+    would silently resolve to a .NET 10 assembly that will not load in .NET 8 Revit 2026.
+  -->
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <Configurations>$(Configurations);Debug R24;Release R24</Configurations>
+    <Configurations>$(Configurations);Debug R25;Release R25</Configurations>
+    <Configurations>$(Configurations);Debug R26;Release R26</Configurations>
+    <Configurations>$(Configurations);Debug R27;Release R27</Configurations>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!--
+      Required for the net48 legs. The SDK defaults .NET Framework targets to C# 7.3,
+      which rejects the file-scoped namespaces, records and `required` members this
+      codebase uses throughout.
+    -->
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <!-- Revit 2027: .NET 10 -->
+  <PropertyGroup Condition="$(Configuration.Contains('R27'))">
+    <RevitVersion>2027</RevitVersion>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2027.2.0</RevitApiPackageVersion>
+    <DefineConstants>$(DefineConstants);REVIT2027</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Revit 2026: .NET 8 -->
+  <PropertyGroup Condition="$(Configuration.Contains('R26'))">
+    <RevitVersion>2026</RevitVersion>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2026.0.0</RevitApiPackageVersion>
+    <DefineConstants>$(DefineConstants);REVIT2026</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Revit 2024: .NET Framework 4.8. See the net48 ItemGroup below. -->
+  <PropertyGroup Condition="$(Configuration.Contains('R24'))">
+    <RevitVersion>2024</RevitVersion>
+    <TargetFramework>net48</TargetFramework>
+    <RevitApiPackageVersion>2024.0.0</RevitApiPackageVersion>
+    <DefineConstants>$(DefineConstants);REVIT2024</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Revit 2025, and the default for un-suffixed Debug/Release -->
+  <PropertyGroup Condition="'$(RevitVersion)' == ''">
+    <RevitVersion>2025</RevitVersion>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RevitApiPackageVersion>2025.0.0</RevitApiPackageVersion>
+    <DefineConstants>$(DefineConstants);REVIT2025</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+    net48 has no System.Text.Json or System.Threading.Channels in the box, and lacks
+    the attribute types the compiler emits for records and `required` members.
+    On .NET 8+ all of this is built in, so none of it applies there.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Compile Include="..\Shared\Net48Polyfills.cs" Link="Properties\Net48Polyfills.cs" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <!--
+      HandlerRegistry uses FrozenDictionary, which is .NET 8+ in the box. The
+      System.Collections.Immutable package carries System.Collections.Frozen down to
+      netstandard2.0, so the registry keeps its fast lookup with no source change.
+    -->
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <!-- Supplies the net48 reference assemblies so a build does not need Visual Studio installed. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2025.*" IncludeAssets="build; compile" PrivateAssets="All" />
+    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitApiPackageVersion)" IncludeAssets="build; compile" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
