@@ -135,10 +135,12 @@ internal class App : IExternalApplication
         };
         _statusButton = panel.AddItem(statusData) as PushButton;
 
-        // Restart Connection button
+        // The three actions sit in a stack beside the status button. Stacked rows render the
+        // 16px Image, never LargeImage, and the label goes on one line - a "\n" in the text
+        // would be drawn literally rather than wrapping.
         var restartData = new PushButtonData(
             "btnRestartConnection",
-            "Restart\nConnection",
+            "Restart Connection",
             assemblyPath,
             typeof(RestartConnectionCommand).FullName)
         {
@@ -146,33 +148,30 @@ internal class App : IExternalApplication
             LargeImage = ConvertToImageSource(Properties.Resources.Restart_32),
             Image = ConvertToImageSource(Properties.Resources.Restart_16)
         };
-        panel.AddItem(restartData);
 
-        // Kill Server button
         var killData = new PushButtonData(
             "btnKillServer",
-            "Kill\nServer",
+            "Kill Server",
             assemblyPath,
             typeof(KillMcpServerCommand).FullName)
         {
             ToolTip = "Terminate the MCP server process. Use this if the server is unresponsive. Claude Desktop will start a new server automatically.",
-            LargeImage = ConvertToImageSource(Properties.Resources.Stop_32),
-            Image = ConvertToImageSource(Properties.Resources.Stop_16)
+            LargeImage = ConvertToImageSource(Properties.Resources.Kill_32),
+            Image = ConvertToImageSource(Properties.Resources.Kill_16)
         };
-        panel.AddItem(killData);
 
-        // Open Claude button
         var claudeData = new PushButtonData(
             "btnOpenClaude",
-            "Open\nClaude",
+            "Open Claude",
             assemblyPath,
             typeof(OpenClaudeCommand).FullName)
         {
             ToolTip = "Launch Claude Desktop or bring it to the foreground",
-            LargeImage = ConvertToImageSource(Properties.Resources.Chat_32),
-            Image = ConvertToImageSource(Properties.Resources.Chat_16)
+            LargeImage = ConvertToImageSource(Properties.Resources.Claude_32),
+            Image = ConvertToImageSource(Properties.Resources.Claude_16)
         };
-        panel.AddItem(claudeData);
+
+        panel.AddStackedItems(restartData, killData, claudeData);
     }
 
     /// <summary>

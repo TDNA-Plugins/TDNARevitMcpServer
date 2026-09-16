@@ -191,11 +191,11 @@ namespace RevitMcp.Addin.Properties
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Stop_16
+        internal static byte[] Kill_16
         {
             get
             {
-                object obj = ResourceManager.GetObject("Stop_16", resourceCulture);
+                object obj = ResourceManager.GetObject("Kill_16", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -203,11 +203,11 @@ namespace RevitMcp.Addin.Properties
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Stop_32
+        internal static byte[] Kill_32
         {
             get
             {
-                object obj = ResourceManager.GetObject("Stop_32", resourceCulture);
+                object obj = ResourceManager.GetObject("Kill_32", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -215,11 +215,11 @@ namespace RevitMcp.Addin.Properties
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Chat_16
+        internal static byte[] Claude_16
         {
             get
             {
-                object obj = ResourceManager.GetObject("Chat_16", resourceCulture);
+                object obj = ResourceManager.GetObject("Claude_16", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -227,11 +227,11 @@ namespace RevitMcp.Addin.Properties
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Chat_32
+        internal static byte[] Claude_32
         {
             get
             {
-                object obj = ResourceManager.GetObject("Chat_32", resourceCulture);
+                object obj = ResourceManager.GetObject("Claude_32", resourceCulture);
                 return ((byte[])(obj));
             }
         }

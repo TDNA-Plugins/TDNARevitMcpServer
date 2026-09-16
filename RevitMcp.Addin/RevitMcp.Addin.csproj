@@ -111,10 +111,10 @@
 	  <EmbeddedResource Include="Resources\Yellow_32.png" />
 	  <EmbeddedResource Include="Resources\Restart_16.png" />
 	  <EmbeddedResource Include="Resources\Restart_32.png" />
-	  <EmbeddedResource Include="Resources\Stop_16.png" />
-	  <EmbeddedResource Include="Resources\Stop_32.png" />
-	  <EmbeddedResource Include="Resources\Chat_16.png" />
-	  <EmbeddedResource Include="Resources\Chat_32.png" />
+	  <EmbeddedResource Include="Resources\Kill_16.png" />
+	  <EmbeddedResource Include="Resources\Kill_32.png" />
+	  <EmbeddedResource Include="Resources\Claude_16.png" />
+	  <EmbeddedResource Include="Resources\Claude_32.png" />
 	</ItemGroup>
 	
 	<ItemGroup>

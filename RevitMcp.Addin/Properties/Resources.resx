@@ -148,16 +148,16 @@
   <data name="Restart_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Restart_32.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Stop_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Stop_16.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Kill_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Kill_16.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Stop_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Stop_32.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Kill_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Kill_32.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Chat_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Chat_16.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Claude_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Claude_16.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Chat_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Chat_32.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="Claude_32" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Claude_32.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
