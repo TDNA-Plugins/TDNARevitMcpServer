@@ -61,6 +61,38 @@ Claude Desktop / VS Code
 | `get_current_view_info` | Get active view details (type, scale, detail level, etc.) |
 | `export_room_data` | Extract rooms with area, volume, perimeter, and department data |
 
+### QAQC
+Ported from the TheatreDNA Launchpad QAQC scripts. All read-only unless noted.
+
+| Tool | Description | Ported from |
+|------|-------------|-------------|
+| `audit_project_health` | Model composition, in-place families, views not on sheets, empty sheets, links/imports, unused groups, warnings, with review flags | `Project_AuditReport` |
+| `audit_linked_files` | Revit and CAD links: status, path, broken/cloud, linked vs imported, view-specific, pinned | `Audit_LinkedFiles` |
+| `check_element_visibility` | Why an element (host or linked) is or isn't visible in a view | `Check_ElementsVisibility` |
+| `find_untagged_elements` | Instances of given families not tagged in the views on given sheets | `Check_TagsOnSheets` |
+| `audit_fonts` | Fonts used by text, dimensions and tags; lists off-standard instances | `QAQC_FontAudit` |
+| `audit_type_names` | Placed type names against a delimiter naming convention; missing Descriptions | `HOPA_NameDecoder` |
+| `find_mirrored_instances` | Mirrored family instances, by category/family/view | `Element_MirrorInPlace` |
+| `get_design_options` | Option sets, options, primary, element counts, empty options | `Export_DesignOptions` |
+| `get_note_blocks` | Note block schedules, their family, row count, sheets | `Check_NoteBlockFamily` |
+| `audit_sheet_list_visibility` | "Appears In Sheet List" vs the `x`-prefix convention. **`fix=true` modifies the model** | `AppearsInSheetList-QAQC` |
+| `find_unpinned_elements` | Unpinned grids, levels, scope boxes, links, title blocks, viewports. **`pin=true` modifies the model** | `PinAll` |
+| `save_model_snapshot` | Save a JSON snapshot of sheets, views, schedules, families (+ parameters), annotation, design options | `Project_SnapshotV2` |
+| `list_model_snapshots` | List saved snapshots for the active model | — |
+| `compare_model_snapshot` | What changed since a snapshot: sheets, views, families added/deleted/moved/re-typed/changed | `Project_CompareV2` |
+| `compare_family_to_file` | Compare the open family against another .rfa: types, parameters, values | `QAQC_Compare Revit Families` |
+
+Snapshots are stored under `%APPDATA%\TheatreDNA\RevitMcp\Snapshots\<model>`, keyed on the central model name so every
+user's local copy shares one history. The JSON matches the Launchpad `Project_SnapshotV2` format.
+
+### Prompts
+Reusable QAQC workflows, shown by MCP clients as slash commands (e.g. `/mcp__revit-mcp__qaqc_model_review`).
+
+| Prompt | What it does |
+|--------|--------------|
+| `qaqc_model_review` | Runs the model-health tools in order and writes a severity-ranked issues table |
+| `qaqc_pre_issue_check` | Checks a sheet set before issue: changes since last snapshot, untagged elements, fonts, sheet list, mirrored |
+
 ## Prerequisites
 
 - **Autodesk Revit 2025** (or newer)

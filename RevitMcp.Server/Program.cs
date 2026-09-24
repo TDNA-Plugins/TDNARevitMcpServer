@@ -25,7 +25,8 @@ builder.Services
         };
     })
     .WithStdioServerTransport()
-    .WithToolsFromAssembly(typeof(ElementTools).Assembly);
+    .WithToolsFromAssembly(typeof(ElementTools).Assembly)
+    .WithPromptsFromAssembly(typeof(ElementTools).Assembly);
 
 var app = builder.Build();
 

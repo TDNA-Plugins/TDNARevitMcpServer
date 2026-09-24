@@ -149,4 +149,51 @@ public static class CommandNames
 
     /// <summary>Gets all family parameters in the active family document.</summary>
     public const string GetParameters = "get_parameters";
+
+    // -- QAQC -----------------------------------------------------------------
+
+    /// <summary>Diagnoses why an element (host or linked) is or isn't visible in a view.</summary>
+    public const string CheckElementVisibility = "check_element_visibility";
+
+    /// <summary>Finds instances of given families that are untagged in the views on given sheets.</summary>
+    public const string FindUntaggedElements = "find_untagged_elements";
+
+    /// <summary>Reports the fonts used by text, dimensions and tags, and flags off-standard fonts.</summary>
+    public const string AuditFonts = "audit_fonts";
+
+    /// <summary>Lists note block schedules and the family each one is for.</summary>
+    public const string GetNoteBlocks = "get_note_blocks";
+
+    /// <summary>Model-health audit: composition, in-place families, views, sheets, links, groups, warnings.</summary>
+    public const string AuditProjectHealth = "audit_project_health";
+
+    /// <summary>Reports Revit and CAD links: status, path, broken, imported vs linked, pinned.</summary>
+    public const string AuditLinkedFiles = "audit_linked_files";
+
+    /// <summary>Lists mirrored family instances.</summary>
+    public const string FindMirroredInstances = "find_mirrored_instances";
+
+    /// <summary>Lists design option sets and options with element counts.</summary>
+    public const string GetDesignOptions = "get_design_options";
+
+    /// <summary>Checks placed type names against a delimiter naming convention.</summary>
+    public const string AuditTypeNames = "audit_type_names";
+
+    /// <summary>Checks each sheet's Appears In Sheet List against the prefix convention, optionally fixing it.</summary>
+    public const string AuditSheetListVisibility = "audit_sheet_list_visibility";
+
+    /// <summary>Finds unpinned grids, levels, links, title blocks, viewports etc., optionally pinning them.</summary>
+    public const string FindUnpinnedElements = "find_unpinned_elements";
+
+    /// <summary>Saves a JSON snapshot of the model for later change comparison.</summary>
+    public const string SaveModelSnapshot = "save_model_snapshot";
+
+    /// <summary>Lists saved snapshots for the active model.</summary>
+    public const string ListModelSnapshots = "list_model_snapshots";
+
+    /// <summary>Compares a saved snapshot against the current model.</summary>
+    public const string CompareModelSnapshot = "compare_model_snapshot";
+
+    /// <summary>Compares the open family against another .rfa file.</summary>
+    public const string CompareFamilyToFile = "compare_family_to_file";
 }
