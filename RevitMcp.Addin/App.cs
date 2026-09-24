@@ -5,6 +5,7 @@ using RevitMcp.Addin.Bridge;
 using RevitMcp.Addin.Status;
 using RevitMcp.Addin.UI;
 using RevitMcp.Core.Handlers;
+using RevitMcp.Core.Handlers.Qaqc;
 
 namespace RevitMcp.Addin;
 
@@ -79,7 +80,24 @@ internal class App : IExternalApplication
             new GetFamilyInfoHandler(),
             new ListFamilyElementsHandler(),
             new GetReferencePlanesHandler(),
-            new GetParametersHandler()
+            new GetParametersHandler(),
+
+            // QAQC
+            new CheckElementVisibilityHandler(),
+            new FindUntaggedElementsHandler(),
+            new AuditFontsHandler(),
+            new GetNoteBlocksHandler(),
+            new AuditProjectHealthHandler(),
+            new AuditLinkedFilesHandler(),
+            new FindMirroredInstancesHandler(),
+            new GetDesignOptionsHandler(),
+            new AuditTypeNamesHandler(),
+            new AuditSheetListVisibilityHandler(),
+            new FindUnpinnedElementsHandler(),
+            new SaveModelSnapshotHandler(),
+            new ListModelSnapshotsHandler(),
+            new CompareModelSnapshotHandler(),
+            new CompareFamilyToFileHandler()
         });
 
         // 2. Create the channel that bridges the pipe thread → Revit main thread.
