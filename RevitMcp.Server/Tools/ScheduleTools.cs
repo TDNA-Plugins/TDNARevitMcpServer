@@ -24,7 +24,10 @@ public sealed class ScheduleTools
         "count as blank when never set. Calculated, Count, hidden, and Room/Material/Project Info fields are skipped " +
         "and listed under SkippedFields. Returns the schedule name, ElementsChecked, ElementsWithBlanks, " +
         "BlanksPerField (blank count per column, highest first), and Elements (Id, Category, Family, Type, " +
-        "BlankFields), capped by maxElements with Truncated=true when more exist. Never modifies the model.")]
+        "BlankFields, DesignOption, PhaseCreated, InSchedule), capped by maxElements with Truncated=true when more exist. " +
+        "Set scope='project' to check every element of the schedule's categories in the whole model instead, ignoring the " +
+        "schedule's filters, phase filter and design option visibility (all options in every option set); this finds blanks " +
+        "the schedule cannot show. Also returns BlankElementsNotInSchedule and BlankElementsByDesignOption. Never modifies the model.")]
     public static async Task<string> AuditScheduleBlanks(
         RevitBridgeClient bridgeClient,
         [Description("Schedule name, exact or a unique partial match (case-insensitive), e.g. '00-Everything Schedule'.")]
@@ -35,6 +38,8 @@ public sealed class ScheduleTools
         bool includeHiddenFields = false,
         [Description("Maximum element rows to return. Totals and per-field counts are always complete. Defaults to 200.")]
         int maxElements = 200,
+        [Description("'schedule' (default) checks only what the schedule shows. 'project' checks every element of the schedule's categories across all design options and phases.")]
+        string scope = "schedule",
         CancellationToken cancellationToken = default)
     {
         var payload = JsonSerializer.SerializeToElement(new
@@ -42,7 +47,8 @@ public sealed class ScheduleTools
             scheduleName,
             fieldNames,
             includeHiddenFields,
-            maxElements
+            maxElements,
+            scope
         });
 
         var request = new BridgeRequest(
