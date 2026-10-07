@@ -143,9 +143,9 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
                 }
 
                 var blanks = new List<string>();
-                foreach (var (field, heading, _) in fields)
+                foreach (var (field, heading, paramName) in fields)
                 {
-                    var reason = BlankReason(doc, el, type, field);
+                    var reason = BlankReason(doc, el, type, field, paramName);
                     if (reason is null) continue;
                     blankCounts[heading]++;
                     blanks.Add(reason == "Missing" ? $"{heading} (missing)" : heading);
@@ -192,21 +192,44 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
         }
     }
 
-    /// <summary>Returns null when the value is filled, "Missing" when the parameter isn't on the element, otherwise "Blank".</summary>
-    private static string? BlankReason(Document doc, Element el, Element? type, ScheduleField field)
+    /// <summary>
+    /// Returns null when the value is filled, "Missing" when the parameter isn't on the element
+    /// or its type, otherwise "Blank".
+    /// </summary>
+    /// <remarks>
+    /// Checks every candidate rather than stopping at the first parameter found: an instance can
+    /// expose an empty parameter with the same id/GUID while the schedule actually displays the
+    /// type's value (seen with type-bound shared parameters in multi-category schedules).
+    /// A value only counts as blank when the instance and the type are both blank.
+    /// </remarks>
+    private static string? BlankReason(Document doc, Element el, Element? type, ScheduleField field, string paramName)
     {
-        var primary = field.FieldType == ScheduleFieldType.ElementType ? type : el;
-        var secondary = field.FieldType == ScheduleFieldType.ElementType ? el : type;
+        var candidates = new List<Parameter>();
+        foreach (var e in new[] { el, type })
+        {
+            if (e is null) continue;
+            var byId = FindParameter(doc, e, field.ParameterId);
+            if (byId is not null) candidates.Add(byId);
+            if (!string.IsNullOrEmpty(paramName))
+            {
+                Parameter? byName = null;
+                try { byName = e.LookupParameter(paramName); } catch { }
+                if (byName is not null) candidates.Add(byName);
+            }
+        }
 
-        var p = FindParameter(doc, primary, field.ParameterId) ?? FindParameter(doc, secondary, field.ParameterId);
-        if (p is null) return "Missing";
-        if (!p.HasValue) return "Blank";
+        if (candidates.Count == 0) return "Missing";
+        return candidates.Any(HasRealValue) ? null : "Blank";
+    }
 
+    private static bool HasRealValue(Parameter p)
+    {
+        if (!p.HasValue) return false;
         return p.StorageType switch
         {
-            StorageType.String => string.IsNullOrWhiteSpace(p.AsString()) ? "Blank" : null,
-            StorageType.ElementId => p.AsElementId() == ElementId.InvalidElementId ? "Blank" : null,
-            _ => null
+            StorageType.String => !string.IsNullOrWhiteSpace(p.AsString()),
+            StorageType.ElementId => p.AsElementId() != ElementId.InvalidElementId,
+            _ => true
         };
     }
 
