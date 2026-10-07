@@ -149,4 +149,7 @@ public static class CommandNames
 
     /// <summary>Gets all family parameters in the active family document.</summary>
     public const string GetParameters = "get_parameters";
+
+    /// <summary>Finds elements in a schedule with blank values in the schedule's parameter fields (read-only).</summary>
+    public const string AuditScheduleBlanks = "audit_schedule_blanks";
 }
