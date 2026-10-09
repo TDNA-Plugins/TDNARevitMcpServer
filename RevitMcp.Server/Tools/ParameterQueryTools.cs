@@ -19,7 +19,8 @@ public sealed class ParameterQueryTools
         "(primary and secondary) and phase in the model. Filter by category names, element IDs, design option " +
         "('all', 'main', 'primary' = Main Model plus primary options, 'secondary', or text matched against " +
         "'Option Set : Option'), and family/type name text. For each parameter the instance is checked first, then " +
-        "the type; a filled value wins over an empty one. Returns Summary (Filled/Blank/Missing count per parameter) " +
+        "the type; every parameter with that name is checked and a filled value wins over an empty one, so same-named " +
+        "duplicate parameters are handled (counted in ElementsWithSameNamedDuplicates). Returns Summary (Filled/Blank/Missing count per parameter) " +
         "and Elements (Id, Category, Family, Type, OptionSet, Option, IsPrimary, PhaseCreated, and Values with " +
         "Value, Source = Instance/Type/Missing, IsBlank). Rows are capped by maxElements with Truncated=true when " +
         "more match. Use this to audit or compare parameter values; it never modifies the model.")]

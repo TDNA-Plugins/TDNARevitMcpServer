@@ -25,7 +25,8 @@ namespace RevitMcp.Core.Handlers;
 /// </list>
 /// For each parameter the instance is checked first, then the type. When both exist, the one
 /// with a value wins. Each value reports Value (display string), Source ("Instance", "Type" or
-/// "Missing") and IsBlank.
+/// "Missing") and IsBlank. Every parameter with the given name is checked, so a filled duplicate is
+/// found even when the first same-named parameter is empty; SameNamedParameters reports such duplicates.
 /// </remarks>
 public sealed class GetParameterValuesHandler : ICommandHandler
 {
@@ -95,6 +96,7 @@ public sealed class GetParameterValuesHandler : ICommandHandler
             var matched = 0;
             var blankCounts = paramNames.ToDictionary(n => n, _ => 0, StringComparer.OrdinalIgnoreCase);
             var missingCounts = paramNames.ToDictionary(n => n, _ => 0, StringComparer.OrdinalIgnoreCase);
+            var duplicateCounts = paramNames.ToDictionary(n => n, _ => 0, StringComparer.OrdinalIgnoreCase);
 
             foreach (var el in source)
             {
@@ -119,10 +121,13 @@ public sealed class GetParameterValuesHandler : ICommandHandler
                 var values = new Dictionary<string, object?>();
                 foreach (var name in paramNames)
                 {
-                    var (value, src, blank) = Read(el, type, name);
+                    var (value, src, blank, count) = Read(el, type, name);
                     if (src == "Missing") missingCounts[name]++;
                     else if (blank) blankCounts[name]++;
-                    values[name] = new Dictionary<string, object?> { ["Value"] = value, ["Source"] = src, ["IsBlank"] = blank };
+                    if (count > 1) duplicateCounts[name]++;
+                    var v = new Dictionary<string, object?> { ["Value"] = value, ["Source"] = src, ["IsBlank"] = blank };
+                    if (count > 1) v["SameNamedParameters"] = count;
+                    values[name] = v;
                 }
 
                 if (rows.Count < maxElements)
@@ -153,7 +158,8 @@ public sealed class GetParameterValuesHandler : ICommandHandler
                     ["Parameter"] = n,
                     ["Blank"] = blankCounts[n],
                     ["Missing"] = missingCounts[n],
-                    ["Filled"] = matched - blankCounts[n] - missingCounts[n]
+                    ["Filled"] = matched - blankCounts[n] - missingCounts[n],
+                    ["ElementsWithSameNamedDuplicates"] = duplicateCounts[n]
                 }).ToList(),
                 ["Elements"] = rows
             };
@@ -165,18 +171,35 @@ public sealed class GetParameterValuesHandler : ICommandHandler
         }
     }
 
-    /// <summary>Reads a parameter from the instance, then the type; a filled value wins over an empty one.</summary>
-    private static (string? Value, string Source, bool IsBlank) Read(Element el, Element? type, string name)
+    /// <summary>
+    /// Reads a parameter from the instance, then the type. Every parameter with that name is
+    /// checked (LookupParameter only returns the first, and a model can carry two same-named
+    /// parameters where only one is filled); a filled value wins over an empty one.
+    /// </summary>
+    private static (string? Value, string Source, bool IsBlank, int Count) Read(Element el, Element? type, string name)
     {
-        Parameter? inst = null, typ = null;
-        try { inst = el.LookupParameter(name); } catch { }
-        try { typ = type?.LookupParameter(name); } catch { }
+        var inst = AllNamed(el, name);
+        var typ = AllNamed(type, name);
+        var count = inst.Count + typ.Count;
 
-        if (inst is not null && HasRealValue(inst)) return (Display(inst), "Instance", false);
-        if (typ is not null && HasRealValue(typ)) return (Display(typ), "Type", false);
-        if (inst is not null) return (Display(inst), "Instance", true);
-        if (typ is not null) return (Display(typ), "Type", true);
-        return (null, "Missing", true);
+        var p = inst.FirstOrDefault(HasRealValue);
+        if (p is not null) return (Display(p), "Instance", false, count);
+        p = typ.FirstOrDefault(HasRealValue);
+        if (p is not null) return (Display(p), "Type", false, count);
+        if (inst.Count > 0) return (Display(inst[0]), "Instance", true, count);
+        if (typ.Count > 0) return (Display(typ[0]), "Type", true, count);
+        return (null, "Missing", true, 0);
+    }
+
+    private static List<Parameter> AllNamed(Element? e, string name)
+    {
+        if (e is null) return new List<Parameter>();
+        try { return e.GetParameters(name).Where(x => x is not null).ToList(); }
+        catch
+        {
+            try { var one = e.LookupParameter(name); return one is null ? new List<Parameter>() : new List<Parameter> { one }; }
+            catch { return new List<Parameter>(); }
+        }
     }
 
     private static bool HasRealValue(Parameter p)
