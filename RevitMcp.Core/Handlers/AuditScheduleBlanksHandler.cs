@@ -22,6 +22,8 @@ namespace RevitMcp.Core.Handlers;
 ///   shows. "project" checks every element of the schedule's categories in the whole model, ignoring the schedule's
 ///   filters, phase filter and design option visibility (all options in every option set are included).</item>
 /// </list>
+/// <c>includeComplete</c> (bool, optional, default false) – also return elements with no blanks
+/// (BlankFields empty), for a full inventory. Counts still cover blank elements only.
 /// Every element row reports its design option, phase created, and whether the schedule shows it.
 /// A value counts as blank when the parameter is missing on the element/type, has no value,
 /// is an empty or whitespace string, or is an unset element reference ("None").
@@ -51,6 +53,8 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
                               mp.ValueKind == JsonValueKind.Number
                 ? Math.Max(0, mp.GetInt32())
                 : 200;
+            var includeComplete = payload.Value.TryGetProperty("includeComplete", out var ic) &&
+                                  ic.ValueKind == JsonValueKind.True;
             var projectScope = payload.Value.TryGetProperty("scope", out var sp) &&
                                sp.ValueKind == JsonValueKind.String &&
                                string.Equals(sp.GetString(), "project", StringComparison.OrdinalIgnoreCase);
@@ -174,6 +178,7 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
             var optionCache = new Dictionary<ElementId, string>();
             var byOption = new Dictionary<string, int>();
             var blanksNotInSchedule = 0;
+            var rowCandidates = 0;
 
             foreach (var el in elements)
             {
@@ -193,13 +198,17 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
                     blanks.Add(reason == "Missing" ? $"{heading} (missing)" : heading);
                 }
 
-                if (blanks.Count == 0) continue;
-                elementsWithBlanks++;
+                if (blanks.Count == 0 && !includeComplete) continue;
+                rowCandidates++;
 
                 var option = DesignOptionLabel(doc, el, optionCache);
-                byOption[option] = byOption.TryGetValue(option, out var n) ? n + 1 : 1;
                 var inSchedule = scheduledIds.Contains(el.Id);
-                if (!inSchedule) blanksNotInSchedule++;
+                if (blanks.Count > 0)
+                {
+                    elementsWithBlanks++;
+                    byOption[option] = byOption.TryGetValue(option, out var n) ? n + 1 : 1;
+                    if (!inSchedule) blanksNotInSchedule++;
+                }
 
                 if (rows.Count < maxElements)
                 {
@@ -238,7 +247,7 @@ public sealed class AuditScheduleBlanksHandler : ICommandHandler
                     .ToList(),
                 ["SkippedFields"] = skipped,
                 ["ElementsReturned"] = rows.Count,
-                ["Truncated"] = elementsWithBlanks > rows.Count,
+                ["Truncated"] = rowCandidates > rows.Count,
                 ["Elements"] = rows
             };
 

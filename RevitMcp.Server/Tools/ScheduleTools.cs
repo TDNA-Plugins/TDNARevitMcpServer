@@ -27,7 +27,8 @@ public sealed class ScheduleTools
         "BlankFields, DesignOption, PhaseCreated, InSchedule), capped by maxElements with Truncated=true when more exist. " +
         "Set scope='project' to check every element of the schedule's categories in the whole model instead, ignoring the " +
         "schedule's filters, phase filter and design option visibility (all options in every option set); this finds blanks " +
-        "the schedule cannot show. Also returns BlankElementsNotInSchedule and BlankElementsByDesignOption. Never modifies the model.")]
+        "the schedule cannot show. Also returns BlankElementsNotInSchedule and BlankElementsByDesignOption. " +
+        "Set includeComplete=true to also list elements with no blanks, e.g. to compare what each design option contains. Never modifies the model.")]
     public static async Task<string> AuditScheduleBlanks(
         RevitBridgeClient bridgeClient,
         [Description("Schedule name, exact or a unique partial match (case-insensitive), e.g. '00-Everything Schedule'.")]
@@ -40,6 +41,8 @@ public sealed class ScheduleTools
         int maxElements = 200,
         [Description("'schedule' (default) checks only what the schedule shows. 'project' checks every element of the schedule's categories across all design options and phases.")]
         string scope = "schedule",
+        [Description("Also return elements that have no blanks (BlankFields empty), giving a full inventory with design option per element. Defaults to false.")]
+        bool includeComplete = false,
         CancellationToken cancellationToken = default)
     {
         var payload = JsonSerializer.SerializeToElement(new
@@ -48,7 +51,8 @@ public sealed class ScheduleTools
             fieldNames,
             includeHiddenFields,
             maxElements,
-            scope
+            scope,
+            includeComplete
         });
 
         var request = new BridgeRequest(
