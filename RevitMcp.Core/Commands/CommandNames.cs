@@ -152,4 +152,7 @@ public static class CommandNames
 
     /// <summary>Finds elements in a schedule with blank values in the schedule's parameter fields (read-only).</summary>
     public const string AuditScheduleBlanks = "audit_schedule_blanks";
+
+    /// <summary>Reads parameter values from many elements across all design options (read-only).</summary>
+    public const string GetParameterValues = "get_parameter_values";
 }

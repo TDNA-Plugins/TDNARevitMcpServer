@@ -80,7 +80,8 @@ internal class App : IExternalApplication
             new ListFamilyElementsHandler(),
             new GetReferencePlanesHandler(),
             new GetParametersHandler(),
-            new AuditScheduleBlanksHandler()
+            new AuditScheduleBlanksHandler(),
+            new GetParameterValuesHandler()
         });
 
         // 2. Create the channel that bridges the pipe thread → Revit main thread.
